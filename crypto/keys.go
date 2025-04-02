@@ -1,14 +1,32 @@
 package crypto
 
-import "crypto/ed25519"
+import (
+	"crypto/ed25519"
+	"crypto/rand"
+	"io"
+)
 
 const (
 	privateKeyLen = 64
 	publicKeyLen  = 32
+	seedlen       = 32
 )
 
 type PrivateKey struct {
 	key ed25519.PrivateKey
+}
+
+func GeneratePrivateKey() *PrivateKey {
+	seed := make([]byte, seedlen)
+
+	_, err := io.ReadFull(rand.Reader, seed)
+	if err != nil {
+		panic(err)
+	}
+
+	return &PrivateKey{
+		key: ed25519.NewKeyFromSeed(seed),
+	}
 }
 
 func (p *PrivateKey) Bytes() []byte {
