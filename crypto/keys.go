@@ -18,6 +18,24 @@ type PrivateKey struct {
 	key ed25519.PrivateKey
 }
 
+func NewPrivateKeyFromString(s string) *PrivateKey {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return NewPrivateKeyFromSeed(b)
+}
+
+func NewPrivateKeyFromSeed(seed []byte) *PrivateKey {
+	if len(seed) != seedlen {
+		panic("invalid seed length, must be 32")
+	}
+	return &PrivateKey{
+		key: ed25519.NewKeyFromSeed(seed),
+	}
+}
+
 func GeneratePrivateKey() *PrivateKey {
 	seed := make([]byte, seedlen)
 
@@ -84,6 +102,6 @@ func (a *Address) Bytes() []byte {
 	return a.value
 }
 
-func (a *Address) String() string {
+func (a Address) String() string {
 	return hex.EncodeToString(a.value)
 }
