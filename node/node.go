@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/qppfod/block/proto"
 	"google.golang.org/grpc"
@@ -12,13 +13,30 @@ import (
 
 type Node struct {
 	version string
+
+	peerLock sync.RWMutex
+	peers    map[proto.NodeClient]bool
+
 	proto.UnimplementedNodeServer
 }
 
 func NewNode() *Node {
 	return &Node{
+		peers:   make(map[proto.NodeClient]bool),
 		version: "blocker-0.1",
 	}
+}
+
+func (n *Node) AddPeer(c proto.NodeClient) {
+	n.peerLock.Lock()
+	defer n.peerLock.Unlock()
+	n.peers[c] = true
+}
+
+func (n *Node) DeletePeer(c proto.NodeClient) {
+	n.peerLock.Lock()
+	defer n.peerLock.Unlock()
+	delete(n.peers, c)
 }
 
 func (n *Node) Start(listenAddr string) error {
